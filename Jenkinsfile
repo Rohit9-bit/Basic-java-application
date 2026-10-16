@@ -1,29 +1,35 @@
 pipeline {
-    agent any
+    agent {label 'jenkins-agent'}
 
     tools {
         // Configure a JDK and Maven installation with these names
         // in Manage Jenkins -> Tools, or remove this block if using a configured agent.
-        jdk 'JDK17'
-        maven 'Maven'
+        jdk 'java21'
+        maven 'maven3'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Cleanup Workspace') {
             steps {
-                checkout scm
+                cleanWs()
             }
         }
 
-        stage('Build') {
+        stage('Checkout from SCM') {
             steps {
-                bat 'mvn -B clean package'
+                git branch: 'main', credentialsId: 'github', url: 'https://github.com/Rohit9-bit/Basic-java-application'
             }
         }
 
-        stage('Archive WAR') {
+        stage('Build Application') {
             steps {
-                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+                sh "mvn clean package"
+            }
+        }
+
+        stage("Test Application") {
+            steps {
+                sh "mvn test"
             }
         }
     }
